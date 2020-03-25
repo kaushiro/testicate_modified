@@ -16,7 +16,7 @@
 	],
 	"activationEvents": [
 		"onCommand:extension.testUnderCursor",
-		"onCommand:extension.testPageAtCursor"
+		"onCommand:extension.allTestsOnPage"
 	],
 	"main": "./extension.js",
 	"contributes": {

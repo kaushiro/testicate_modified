@@ -9,6 +9,10 @@ const vscode = require("vscode");
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
+  const editor = vscode.window.activeTextEditor;
+  const document = editor.document;
+  const term = vscode.window.activeTerminal;
+
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with  registerCommand
   // The commandId parameter must match the command field in package.json
@@ -26,10 +30,6 @@ function activate(context) {
   let disposable = vscode.commands.registerCommand(
     "extension.testUnderCursor",
     function() {
-      const editor = vscode.window.activeTextEditor;
-      const document = editor.document;
-      const term = vscode.window.activeTerminal;
-
       function searchBackward(regex) {
         var lineNum = editor.selection.active.line;
         while (lineNum >= 0) {
@@ -44,48 +44,29 @@ function activate(context) {
         throw new Error("Didnt find search regex");
       }
 
-      // function moduleNameOfCurrentFile() {
-      //   const fname = document.fileName;
-      //   const relativeFname = fname.replace(
-      //     vscode.workspace.rootPath + "/",
-      //     ""
-      //   );
-      //   return relativeFname.replace(/\//g, ".").replace(/\.py$/, "");
-      // }
-
       function testPathAtCursor() {
         const moduleName = moduleNameOfCurrentFile();
         const className = searchBackward(/^\s*class (\w+)/);
         const funcName = searchBackward(/^\s*def (test_\w+)/);
         return `${moduleName}.${className}.${funcName}`;
       }
-      // function mungeTestPathIntoConfig(testPath) {
-      //   term.sendText(
-      //     `sed -i -e "s/^\\( \\+'test_subset': \\)'.*'/\\1'${testPath}'/" configs/test_config.py`
-      //   );
-      // }
-
       mungeTestPathIntoConfig(testPathAtCursor());
       term.sendText("python3 ./run.py");
     }
   );
+  context.subscriptions.push(disposable);
 
   let allTestsDisposable = vscode.commands.registerCommand(
-    "extension.testPageAtCursor",
+    "extension.allTestsOnPage",
     function() {
-      function testPageAtCursor() {
+      function allTestsOnPage() {
         return moduleNameOfCurrentFile();
       }
-      // function mungeTestPathIntoConfig(testPath) {
-      //   term.sendText(
-      //     `sed -i -e "s/^\\( \\+'test_subset': \\)'.*'/\\1'${testPath}'/" configs/test_config.py`
-      //   );
-      // }
-      mungeTestPathIntoConfig(testPageAtCursor());
+      mungeTestPathIntoConfig(allTestsOnPage());
       term.sendText("python3 ./run.py");
     }
   );
-  context.subscriptions.push(disposable, allTestsDisposable);
+  context.subscriptions.push(allTestsDisposable);
 }
 exports.activate = activate;
 
